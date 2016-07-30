@@ -10,18 +10,21 @@ import UIKit
 import C4
 
 class ViewController: CanvasController {
-
+    // Outlet Collectionという機能
     @IBOutlet var pointButton: [UIButton]!
-
+    // 指についてくる線の配列（配列じゃなくてもいいかも...?）
     var line = [Line]()
+    // 繋がった線の配列
     var answerLine = [Line]()
+    // ボタンのフレームの配列
     var buttonFrame = [CGRect]()
+    // ボタンの中心座標の配列
     var buttonCenter = [Point]()
-
+    // 訪れたボタンのリスト
     var setList = [Int]()
-
+    // 始点の座標を入れておく
     var beforeCenter: Point!
-
+    // タッチし始めから何個ボタンを通過したか
     var index: Int = 0
 
     override func setup() {
@@ -30,14 +33,13 @@ class ViewController: CanvasController {
     // Storyboardでの座標が定まってから開始
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
-
+        // ボタンの座標を取得する
         for button in pointButton {
             buttonFrame.append(button.frame)
             buttonCenter.append(Point(Double(button.frame.midX), Double(button.frame.midY)))
         }
 
         index = 0
-
         canvas.addPanGestureRecognizer { location, center, translation, velocity, state in
             ShapeLayer.disableActions = true
 
@@ -60,13 +62,14 @@ class ViewController: CanvasController {
                     self.line[self.index].removeFromSuperview()
                     // answerLineがつなぐ線
                     self.answerLine.append(Line(begin: self.beforeCenter, end: self.buttonCenter[i]))
-                    self.answerLine[self.index].lineWidth = 10
-                    self.answerLine[self.index].strokeColor = C4Pink
+                    self.answerLine[self.index].lineWidth = 10          // 線幅
+                    self.answerLine[self.index].strokeColor = C4Pink    // 線の色
                     self.canvas.add(self.answerLine[self.index])
                     // たどりついた点を次の始点に
                     self.beforeCenter = self.buttonCenter[i]
                     self.index += 1
                     if self.index != 3 {
+                        // 訪れたボタンのところから新しい線を出し始める
                         self.line.append(Line(begin: self.beforeCenter, end: self.beforeCenter))
                         self.line[self.index].anchorPoint = self.beforeCenter
                         self.line[self.index].lineWidth = 10
