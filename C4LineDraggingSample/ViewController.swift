@@ -26,10 +26,10 @@ class ViewController: CanvasController {
     var beforeCenter: Point!
     // タッチし始めから何個ボタンを通過したか
     var index: Int = 0
-
+    
     override func setup() {
     }
-
+    
     // Storyboardでの座標が定まってから開始
     override func viewDidAppear(animated: Bool) {
         super.viewDidAppear(animated)
@@ -38,14 +38,19 @@ class ViewController: CanvasController {
             buttonFrame.append(button.frame)
             buttonCenter.append(Point(Double(button.frame.midX), Double(button.frame.midY)))
         }
-
+        
         index = 0
         canvas.addPanGestureRecognizer { location, center, translation, velocity, state in
             ShapeLayer.disableActions = true
-
+            
             // 下でエラーを出さないように
             if self.index >= self.line.count {
                 return
+            }
+            if state == .Ended {
+                if self.line.count > self.index {
+                    self.line[self.index].removeFromSuperview()
+                }
             }
             // beforeCenterには始点の情報がcenterには指の位置が入っていてそこまでの直線を書く
             self.line[self.index].endPoints = (self.beforeCenter, center)
@@ -68,26 +73,27 @@ class ViewController: CanvasController {
                     // たどりついた点を次の始点に
                     self.beforeCenter = self.buttonCenter[i]
                     self.index += 1
-                    if self.index != 3 {
+                    self.setList.append(i)
+                    if self.index != 8 {
                         // 訪れたボタンのところから新しい線を出し始める
                         self.line.append(Line(begin: self.beforeCenter, end: self.beforeCenter))
                         self.line[self.index].anchorPoint = self.beforeCenter
                         self.line[self.index].lineWidth = 10
                         self.line[self.index].strokeColor = C4Blue
                         self.canvas.add(self.line[self.index])
-                        self.setList.append(i)
                     }
                     break
                 }
             }
-            if self.index == 3 {
+            if self.index == 8 {
                 NSTimer.scheduledTimerWithTimeInterval(2.0, target: self, selector: #selector(ViewController.initProperty), userInfo: nil, repeats: false)
             }
         }
     }
-
+    
     // 最初に線を伸ばし始めるときはタッチと同時に描画し始めたいのでtouchesBeganで
     override func touchesBegan(touches: Set<UITouch>, withEvent event: UIEvent?) {
+        print("began")
         for touch in touches {
             let location = touch.locationInView(self.view)
             let center = Point(Double(location.x), Double(location.y))
@@ -106,10 +112,12 @@ class ViewController: CanvasController {
                         return
                     }
                 }
+            } else if line.count > index {
+                canvas.add(line[index])
             }
         }
     }
-
+    
     func initProperty() {
         line.removeAll()
         for al in answerLine {
